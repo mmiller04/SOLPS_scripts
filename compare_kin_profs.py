@@ -9,8 +9,8 @@ attempt = 3
 SOLPSWORK = '/nobackup1/users/millerma/solps-iter/runs'
 
 exp_file = '{}/exp_data/lyman_data_{}.pkl'.format(SOLPSWORK, shot)
-fid_exp = open(exp_file, 'rb')
-exp_obj = pkl.load(fid_exp)
+with open(exp_file, 'rb') as f:
+	exp_obj = pkl.load(f)
 
 # put into dictionary
 exp = {'X':{}, 'Y':{}}
