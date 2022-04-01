@@ -13,8 +13,8 @@ import sys, os
 import aurora
 
 shot = 1070614013
-attempt = 62
-experiment = 'pump_on'
+experiment = sys.argv[1]
+attempt = sys.argv[2]
 b2path = '/nobackup1/millerma/solps-iter/runs/{}/{}/attempt{}'.format(shot, experiment, attempt)
 
 # alternatively, one may want to load SOLPS results from files on disk:

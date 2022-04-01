@@ -63,9 +63,105 @@ def calc_neutral_pressure(SOLPSWORK, shot, experiment, attempt, loc, plot=False)
 			ax.set_xlabel('Radius (m)')
 			ax.set_ylabel('Pressure (mTorr)')
 
+	
+	if loc == 'G-SIDE_RAT':
+
+		inds = np.where(so.xnodes >= so.xnodes.max() - 1e-3)[0] # get indices that correspond to vertices lying at the right of VV
+		tris = so.triangles.astype(int) # triangles indices saved as floats for some reason
+
+		xcent, pcent = [], []
+
+		for i in inds:
+
+			num = np.where(tris == i)[0]
+			corner = np.where(tris == i)[0]
+
+			# most vertices are shared so need to iterate through shared vertex coords
+			for j in range(len(num)):
+		
+				xcent.append(so.xnodes[tris[num[j]]].mean())
+				pcent.append(edena[num[j]])
+
+	
+		avg_edena_omp = np.mean(pcent)*1e6 # convert to eV/m^3
+		avg_edena_omp_mtorr = avg_edena_omp*1.602e-19/133*1e3 # convert to Pa --> Torr --> mTorr
+		pressure_out = 2/3*avg_edena_omp_mtorr # pressure in mTorr
 
 	return pressure_out
+
+
+def calc_mom_flux(SOLPSWORK, shot, experiment, attempt, plot=False):
+
+	# initialize aurora solps object
+	b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot, experiment, attempt)
+
+	so = aurora.solps_case(
+		b2fstate_path='{}/b2fstate'.format(b2path),
+		b2fgmtry_path='{}/b2fgmtry'.format(b2path),
+		geqdsk='/nobackup1/millerma/solps-iter/runs/1070614013/pump_on/baserun/g1070614013.00793_610'
+	)
+
+	# pull energy density from fort46 file
+	vydena= so.fort46['vydena']
 	
+	inds = np.where(so.ynodes >= so.ynodes.max()-1e-3)[0] # get indices that correspond to vertices lying at the top of VV
+	tris = so.triangles.astype(int) # triangles indices saved as floats for some reason
+
+	xcent, mcent = [], []
+
+	for i in inds:
+			
+		num = np.where(tris == i)[0] 
+		corner = np.where(tris == i)[0]
+
+		# most vertices are shared so need to iterate through shared vertex coords
+		for j in range(len(num)):
+			
+			xcent.append(so.xnodes[tris[num[j]]].mean())
+			mcent.append(vydena[num[j]])
+
+	# cryopump baffle coords
+	R_cryo = [0.574, 0.641] # these correspond to SOLPS grid but may not correspond to real space
+		
+	# conver to arrays for masking
+	xcent, mcent = np.array(xcent), np.array(mcent)
+
+	mask = np.logical_and(xcent > R_cryo[0], xcent < R_cryo[1])
+
+	avg_mflux_up = np.mean(mcent[mask])/1e3*1e4 # convert to kg/m^2/s^-1
+
+
+	if plot:
+
+		fig, ax = plt.subplots()
+
+		ax.plot(xcent[mask], mcent[mask], 'x', c='r')
+		ax.plot(xcent, mcent, 'o')
+		ax.legend(['Pump baffle'])
+
+		ax.set_xlabel('Radius (m)')
+		ax.set_ylabel('Pressure (mTorr)')
+
+	return avg_mflux_up
+	
+
+def calc_pumped_flux(SOLPSWORK, shot, experiment, attempt, plot=False):
+	
+	# initialize aurora solps object
+	b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot, experiment, attempt)
+
+	so = aurora.solps_case(
+		b2fstate_path='{}/b2fstate'.format(b2path),
+		b2fgmtry_path='{}/b2fgmtry'.format(b2path),
+		geqdsk='/nobackup1/millerma/solps-iter/runs/1070614013/pump_on/baserun/g1070614013.00793_610'
+	)
+
+	pump_inds = [82, 83, 96, 97]
+
+	pumped_flux = np.mean(so.fort44['wlpump(A)'][0])
+
+	return pumped_flux
+
 
 def get_neutral_density(SOLPSWORK, shot, experiment, attempt, loc='sep', plot=False):
 
@@ -97,12 +193,19 @@ def get_neutral_density(SOLPSWORK, shot, experiment, attempt, loc='sep', plot=Fa
 	return nn_out
 
 
-def get_neutral_density(SOLPSWORK, shot, experiment, attempt, loc='sep', plot=False):
+#def get_neutral_density(SOLPSWORK, shot, experiment, attempt, loc='sep', plot=False):
 
-	
+def undo_dumb_stuff(dumb_stuff,dumb_helper):
 
+	psin = np.array(dumb_stuff)+1
+	rhop = np.sqrt(psin)
 
-	
+	Rmid = aurora.rad_coord_transform(rhop,'rhop','Rmid',dumb_helper)
+	Rsep = aurora.rad_coord_transform(1,'rhop','Rmid',dumb_helper)
+
+	undumb_stuff = Rmid-Rsep
+
+	return undumb_stuff
 
 
 
