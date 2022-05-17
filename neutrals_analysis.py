@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 import aurora
 import netCDF4 as nc
+import glob
 
 from scipy.interpolate import interp1d
 
@@ -210,7 +211,7 @@ def undo_dumb_stuff(dumb_stuff,dumb_helper):
 	return undumb_stuff
 
 
-def load_aurora_socase(SOLPSWORK, shot, experiment, name)
+def load_aurora_socase(SOLPSWORK, shot, experiment, name):
 
 	run_path = '{}/{}/{}/{}'.format(SOLPSWORK,shot,experiment,name)
 	base_path = '{}/{}/{}/baserun'.format(SOLPSWORK,shot,experiment)
@@ -224,15 +225,15 @@ def load_aurora_socase(SOLPSWORK, shot, experiment, name)
 	return so
 
 
-def plot_2dcontour(run_path, quantity, grid, so, fig=None, ax=None, bounds=None):
+def get_2dcontour_quantity(run_path, quantity, so):
 
 	toplot = None
 
 	if quantity == 'nn':
 		
-		print('not yet implemented')
+		toplot = so.fort46['pdena'][:,0]*1e6		
 
-	elif quantity = 'source':
+	elif quantity == 'source':
 
 		fn = '{}/balance.nc'.format(run_path)
 		ds = nc.Dataset(fn)
@@ -248,14 +249,8 @@ def plot_2dcontour(run_path, quantity, grid, so, fig=None, ax=None, bounds=None)
 		sna_b2grid = sna_Dplus_vol[1:-1,1:-1] # cut off first and last elements to match B2 grid from aurora
 	
 		toplot = sna_b2grid
-	
-	if grid == 'B2':
-		so.plot2d_b2(toplot, ax=ax[ind], scale='log')
 
-	elif grid == 'EIRENE':
-		so.plot2d_eirene(toplot, ax=ax[ind], scale='log')
-
-	return fig, ax
+	return toplot
 
 		
 
