@@ -12,7 +12,7 @@ shot_off = 1070614016
 #experiment = 'pump_off'
 #shot = 1120917011
 experiment = sys.argv[1]
-attempt = sys.argv[2]
+name = sys.argv[2]
 
 SOLPSWORK = '/nobackup1/users/millerma/solps-iter/runs'
 
@@ -111,7 +111,7 @@ SOLPS['nn']['EIR'] = {}
 
 import aurora
 
-b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot_on, experiment, attempt)
+b2path = '{}/{}/{}/{}'.format(SOLPSWORK, shot_on, experiment, name)
 
 so = aurora.solps_case(
 	b2fstate_path='{}/b2fstate'.format(b2path),
@@ -129,6 +129,8 @@ rhop_LFS = aurora.coords.get_rhop_RZ(R_LFS, np.zeros_like(R_LFS), so.geqdsk)
 #SOLPS['nn']['B2']['X'] = rhop_LFS**2
 SOLPS['nn']['B2']['X'] = R_LFS
 SOLPS['nn']['B2']['Y'] = so.fort44['dab2'][38]
+
+Z_LFS = so.data('cz')[:,38]
 
 # get flux from SOLPS
 SOLPS['flux']['B2'] = {}
@@ -253,13 +255,12 @@ SOLPS['nn']['EIR']['X'] = R_EIRENE_OMP
 SOLPS['nn']['EIR']['Y'] = nn_EIRENE_OMP*1e6
 
 
-
 ###
 
 tparams = ['dna0','dpa0','hcib','hce0','vla0_x','vla0_y','vsa0','sig0','alf0']
 transport = {'dna0':{}, 'hcib':{}, 'hce0':{}}
 
-transport_file = '{}/{}/{}/attempt{}/b2.transport.inputfile'.format(SOLPSWORK, shot_on, experiment, attempt)
+transport_file = '{}/{}/{}/{}/b2.transport.inputfile'.format(SOLPSWORK, shot_on, experiment, name)
 tlist = []
 with open(transport_file,'r') as f:
 	for line in f.readlines():
@@ -292,6 +293,7 @@ ff = 1./np.log(10.)
 
 fig, ax = plt.subplots(2, sharex=True)
 ax[0].errorbar(exp['on']['nn']['X'], np.log(exp['on']['nn']['Y']), ff*exp['on']['nn']['Y_unc']/exp['on']['nn']['Y'])
+ax[0].errorbar(exp['off']['nn']['X'], np.log(exp['off']['nn']['Y']), ff*exp['off']['nn']['Y_unc']/exp['off']['nn']['Y'])
 #ax[0].semilogy(exp['on']['nn']['X'], exp['on']['nn']['Y'])
 #ax[0].semilogy(exp['off']['nn']['X'], exp['off']['nn']['Y'])
 ax[0].plot(SOLPS['nn']['B2']['X'], np.log(SOLPS['nn']['B2']['Y']),'.')
@@ -299,20 +301,24 @@ ax[0].plot(SOLPS['nn']['EIR']['X'], np.log(SOLPS['nn']['EIR']['Y']),'.')
 ax[0].legend(['B2', 'EIRENE', '1070614013 (on)'])
 ax[0].axvline(R_sep_SOLPS,linestyle='--',color='gray')
 #ax[0,0].plot(SOLPS['nn']['X'], SOLPS['nn']['Y'])
-ax[0].set_ylabel('$log(n_{D}) (m^{-3})$')
+ax[0].set_ylabel('$log(n_{D}) (m^{-3})$', fontsize=14)
+ax[0].tick_params(axis='y', labelsize=14)
 
 #ax[1,0].plot(transport['dna0']['X'], transport['dna0']['Y'],'-o')
 #ax[1,0].legend(['$D$'])
 
 ax[1].errorbar(exp['on']['S_ion']['X'], np.log(exp['on']['S_ion']['Y']), ff*exp['on']['S_ion']['Y_unc']/exp['on']['S_ion']['Y'], fmt='.')
+ax[1].errorbar(exp['off']['S_ion']['X'], np.log(exp['off']['S_ion']['Y']), ff*exp['off']['S_ion']['Y_unc']/exp['off']['S_ion']['Y'], fmt='.')
 #ax[1].semilogy(exp['on']['S_ion']['X'], exp['on']['S_ion']['Y'])
 #ax[1].semilogy(exp['off']['S_ion']['X'], exp['off']['S_ion']['Y'])
-ax[1].semilogy(SOLPS['S_ion']['X'], np.log(SOLPS['S_ion']['Y']),'.')
+ax[1].plot(SOLPS['S_ion']['X'], np.log(SOLPS['S_ion']['Y']),'.')
 ax[1].axvline(R_sep_SOLPS,linestyle='--',color='gray')
 #ax[0,1].plot(SOLPS['te']['X'], SOLPS['te']['Y'])
 #ax[0,1].set_ylabel('$S_{ion}$')
-ax[1].set_ylabel('$log(S_{D^{+}}) (m^{-3}s^{-1})$')
-ax[1].set_xlabel('$R (m)$')
+ax[1].set_ylabel('$log(S_{D^{+}}) (m^{-3}s^{-1})$', fontsize=14)
+ax[1].set_xlabel('$R (m)$', fontsize=14)
+ax[1].tick_params(axis='y', labelsize=14)
+ax[1].tick_params(axis='x', labelsize=14)
 
 ax[0].set_xlim([0.85,0.92])
 
@@ -327,7 +333,7 @@ ax.plot(SOLPS['fna']['B2']['X'], SOLPS['fna']['B2']['Y'],'.')
 ax.axvline(R_sep_SOLPS,linestyle='--',color='gray')
 #ax.legend(['1070614013 (on)', '1070614016 (off)','fort44', 'balance'])
 ax.legend(['fort44', 'balance'])
-ax.set_ylabel('$\Gamma_{D^{+}}$')
+ax.set_ylabel('$\Gamma_{D^{+}}$', fontsize=14)
 #ax[1].plot(transport['hcib']['X'], transport['hcib']['Y'],'-o')
 #ax[1].plot(transport['hce0']['X'], transport['hce0']['Y'],'-o')
 #ax[1].legend(['$\chi_{i}$','$\chi_{e}$'])

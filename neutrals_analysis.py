@@ -4,13 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import aurora
+import netCDF4 as nc
 
 from scipy.interpolate import interp1d
 
-def calc_neutral_pressure(SOLPSWORK, shot, experiment, attempt, loc, plot=False):
+
+def calc_neutral_pressure(SOLPSWORK, shot, experiment, name, loc, plot=False):
 
 	# initialize aurora solps object
-	b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot, experiment, attempt)
+	b2path = '{}/{}/{}/{}'.format(SOLPSWORK, shot, experiment, name)
 
 	so = aurora.solps_case(
 		b2fstate_path='{}/b2fstate'.format(b2path),
@@ -90,10 +92,10 @@ def calc_neutral_pressure(SOLPSWORK, shot, experiment, attempt, loc, plot=False)
 	return pressure_out
 
 
-def calc_mom_flux(SOLPSWORK, shot, experiment, attempt, plot=False):
+def calc_mom_flux(SOLPSWORK, shot, experiment, name, plot=False):
 
 	# initialize aurora solps object
-	b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot, experiment, attempt)
+	b2path = '{}/{}/{}/{}'.format(SOLPSWORK, shot, experiment, name)
 
 	so = aurora.solps_case(
 		b2fstate_path='{}/b2fstate'.format(b2path),
@@ -145,10 +147,10 @@ def calc_mom_flux(SOLPSWORK, shot, experiment, attempt, plot=False):
 	return avg_mflux_up
 	
 
-def calc_pumped_flux(SOLPSWORK, shot, experiment, attempt, plot=False):
+def calc_pumped_flux(SOLPSWORK, shot, experiment, name, plot=False):
 	
 	# initialize aurora solps object
-	b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot, experiment, attempt)
+	b2path = '{}/{}/{}/{}'.format(SOLPSWORK, shot, experiment, name)
 
 	so = aurora.solps_case(
 		b2fstate_path='{}/b2fstate'.format(b2path),
@@ -163,10 +165,10 @@ def calc_pumped_flux(SOLPSWORK, shot, experiment, attempt, plot=False):
 	return pumped_flux
 
 
-def get_neutral_density(SOLPSWORK, shot, experiment, attempt, loc='sep', plot=False):
+def get_neutral_density(SOLPSWORK, shot, experiment, name, loc='sep', plot=False):
 
 	# initialize aurora solps object
-	b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot, experiment, attempt)
+	b2path = '{}/{}/{}/{}'.format(SOLPSWORK, shot, experiment, name)
 
 	so = aurora.solps_case(
 		b2fstate_path='{}/b2fstate'.format(b2path),
@@ -208,7 +210,60 @@ def undo_dumb_stuff(dumb_stuff,dumb_helper):
 	return undumb_stuff
 
 
+def load_aurora_socase(SOLPSWORK, shot, experiment, name)
+
+	run_path = '{}/{}/{}/{}'.format(SOLPSWORK,shot,experiment,name)
+	base_path = '{}/{}/{}/baserun'.format(SOLPSWORK,shot,experiment)
+
+	so = aurora.solps_case(
+		b2fstate_path="{}/b2fstate".format(run_path),
+		b2fgmtry_path="{}/b2fgmtry".format(run_path),
+		geqdsk = glob.glob("{}/g{}.*".format(base_path,shot))[0]
+	)
+
+	return so
+
+
+def plot_2dcontour(run_path, quantity, grid, so, fig=None, ax=None, bounds=None):
+
+	toplot = None
+
+	if quantity == 'nn':
+		
+		print('not yet implemented')
+
+	elif quantity = 'source':
+
+		fn = '{}/balance.nc'.format(run_path)
+		ds = nc.Dataset(fn)
+	
+		sna = ds['eirene_mc_papl_sna_bal']
+		vol = ds['vol'] # cell volumes
+		crx = ds['crx'] # x-coords
+		cry = ds['cry'] # y-coords
+
+		sna_sum = np.sum(sna, axis=0) # sum over EIRENE strata
+		sna_Dplus_vol = sna_sum[1]/vol # get source per vol
+		
+		sna_b2grid = sna_Dplus_vol[1:-1,1:-1] # cut off first and last elements to match B2 grid from aurora
+	
+		toplot = sna_b2grid
+	
+	if grid == 'B2':
+		so.plot2d_b2(toplot, ax=ax[ind], scale='log')
+
+	elif grid == 'EIRENE':
+		so.plot2d_eirene(toplot, ax=ax[ind], scale='log')
+
+	return fig, ax
+
+		
 
 
 # balance.nc gives source
 # fort.44/fort.46 gives n_dens, energy_dens (pressure) on B2/EIRENE grids
+
+
+
+
+

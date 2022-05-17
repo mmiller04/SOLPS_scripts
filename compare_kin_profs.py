@@ -10,7 +10,7 @@ shot_off = 1070614016
 #experiment = 'pump_off'
 #shot = 1120917011
 experiment = sys.argv[1]
-attempt = sys.argv[2]
+name = sys.argv[2]
 
 SOLPSWORK = '/nobackup1/users/millerma/solps-iter/runs'
 
@@ -56,7 +56,7 @@ te_on['Y_unc'], te_off['Y_unc'] = Te_unc_on, Te_unc_off # in eV
 
 SOLPS = {'ne':{}, 'te':{}}
 
-b2path = '{}/{}/{}/attempt{}'.format(SOLPSWORK, shot_on, experiment, attempt)
+b2path = '{}/{}/{}/{}'.format(SOLPSWORK, shot_on, experiment, name)
 
 # use aurora to get ne/te from solps
 import aurora
@@ -79,7 +79,7 @@ for kw in params:
 tparams = ['dna0','dpa0','hcib','hce0','vla0_x','vla0_y','vsa0','sig0','alf0']
 transport = {'dna0':{}, 'hcib':{}, 'hce0':{}}
 
-transport_file = '{}/{}/{}/attempt{}/b2.transport.inputfile'.format(SOLPSWORK, shot_on, experiment, attempt)
+transport_file = '{}/{}/{}/{}/b2.transport.inputfile'.format(SOLPSWORK, shot_on, experiment, name)
 tlist = []
 with open(transport_file,'r') as f:
 	for line in f.readlines():
@@ -128,23 +128,31 @@ ax[0,0].plot(SOLPS['ne']['X'], SOLPS['ne']['Y'])
 ax[0,0].plot(exp['on']['ne']['X'], exp['on']['ne']['Y'])
 #ax[0,0].plot(exp['off']['ne']['X'], exp['off']['ne']['Y'],'.')
 ax[0,0].legend(['SOLPS','1070614013 (on)','1070614016 (off)'])
-ax[0,0].set_ylabel('$n_{e} (m^{-3})$')
+ax[0,0].set_ylabel('$n_{e} (m^{-3})$', fontsize=14)
+ax[0,0].tick_params(axis='y', labelsize=14)
+ax[0,0].tick_params(axis='x', labelsize=14)
 
 ax[1,0].plot(transport['dna0']['X'], transport['dna0']['Y'],'-o')
-ax[1,0].set_ylabel('$D (m^{2}s^{-1})$')
-ax[1,0].set_xlabel('$R - R_{sep} (m)$')
+ax[1,0].set_ylabel('$D (m^{2}s^{-1})$', fontsize=14)
+ax[1,0].set_xlabel('$R - R_{sep} (m)$', fontsize=14)
+ax[1,0].tick_params(axis='y', labelsize=14)
+ax[1,0].tick_params(axis='x', labelsize=14)
 
 #ax[0,1].errorbar(exp['on']['te']['X'], exp['on']['te']['Y'], exp['on']['te']['Y_unc'])
 #ax[0,1].errorbar(exp['off']['te']['X'], exp['off']['te']['Y'], exp['off']['te']['Y_unc'])
 ax[0,1].plot(SOLPS['te']['X'], SOLPS['te']['Y'])
 ax[0,1].plot(exp['on']['te']['X'], exp['on']['te']['Y'])
 #ax[0,1].plot(exp['off']['te']['X'], exp['off']['te']['Y'],'.')
-ax[0,1].set_ylabel('$T_{e} (eV)$')
+ax[0,1].set_ylabel('$T_{e} (eV)$', fontsize=14)
+ax[0,1].tick_params(axis='y', labelsize=14)
+ax[0,1].tick_params(axis='x', labelsize=14)
 
 ax[1,1].plot(transport['hcib']['X'], transport['hcib']['Y'],'-o')
 ax[1,1].plot(transport['hce0']['X'], transport['hce0']['Y'],'-o')
-ax[1,1].set_ylabel('$\chi_{i,e} (m^{2}s^{-1})$')
-ax[1,1].set_xlabel('$R - R_{sep} (m)$')
+ax[1,1].set_ylabel('$\chi_{i,e} (m^{2}s^{-1})$', fontsize=14)
+ax[1,1].set_xlabel('$R - R_{sep} (m)$', fontsize=14)
+ax[1,1].tick_params(axis='y', labelsize=14)
+ax[1,1].tick_params(axis='x', labelsize=14)
 
 ax[0,1].set_xlim(SOLPS[kw]['X'][0],SOLPS[kw]['X'][-1]+1e-2)
 
